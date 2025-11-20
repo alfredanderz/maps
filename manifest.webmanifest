@@ -1,25 +1,8 @@
 {
-  "name": "PWA Geolocalización",
-  "short_name": "Mi Ubicación",
-  "description": "Aplicación para obtener tu ubicación en tiempo real",
+  "name": "Mi Ubicación",
+  "short_name": "Geo",
   "start_url": "./",
-  "scope": "./",
   "display": "standalone",
-  "orientation": "portrait",
   "background_color": "#ffffff",
-  "theme_color": "#667eea",
-  "icons": [
-    {
-      "src": "icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
-    }
-  ]
+  "theme_color": "#667eea"
 }
