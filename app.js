@@ -13,7 +13,7 @@ const btnDetener = $("#btn-detener");
 
 let watchId = null;
 
-// Verificar permisos
+// Mostrar estado inicial de permisos si está disponible
 if ("permissions" in navigator && navigator.permissions.query) {
   navigator.permissions
     .query({ name: "geolocation" })
@@ -24,19 +24,19 @@ if ("permissions" in navigator && navigator.permissions.query) {
       };
     })
     .catch(() => {
-      permisoSpan.textContent = "no disponible";
+      permisoSpan.textContent = "no disponible (permissions API)";
     });
 } else {
-  permisoSpan.textContent = "desconocido";
+  permisoSpan.textContent = "desconocido (sin Permissions API)";
 }
 
-// Formatear fecha
+// Función para formatear fecha/hora
 function formatTimestamp(ts) {
   const date = new Date(ts);
   return date.toLocaleString();
 }
 
-// Éxito al obtener ubicación
+// Función que maneja posición exitosa
 function onPositionSuccess(position) {
   const { latitude, longitude, accuracy } = position.coords;
 
@@ -45,58 +45,57 @@ function onPositionSuccess(position) {
   accSpan.textContent = accuracy.toFixed(2);
   timestampSpan.textContent = formatTimestamp(position.timestamp);
 
-  mensajeP.textContent = "✅ Ubicación actualizada correctamente.";
-  mensajeP.style.color = "#059669";
+  mensajeP.textContent = "Ubicación actualizada correctamente.";
 
+  // Mostrar link a mapas (Google Maps)
   const url = `https://www.google.com/maps?q=${latitude},${longitude}`;
   linkMaps.href = url;
   linkMaps.style.display = "inline-block";
 }
 
-// Error al obtener ubicación
+// Función que maneja errores de geolocalización
 function onPositionError(error) {
   console.error(error);
-  mensajeP.style.color = "#dc2626";
   switch (error.code) {
     case error.PERMISSION_DENIED:
       mensajeP.textContent =
-        "❌ Permiso denegado. Revisa la configuración del navegador.";
+        "Permiso denegado. Revisa la configuración del navegador.";
       break;
     case error.POSITION_UNAVAILABLE:
-      mensajeP.textContent = "❌ La ubicación no está disponible.";
+      mensajeP.textContent = "La ubicación no está disponible.";
       break;
     case error.TIMEOUT:
-      mensajeP.textContent = "❌ La solicitud tardó demasiado.";
+      mensajeP.textContent = "La solicitud de ubicación tardó demasiado.";
       break;
     default:
-      mensajeP.textContent = "❌ Error al obtener la ubicación.";
+      mensajeP.textContent = "Ocurrió un error al obtener la ubicación.";
   }
 }
 
-// Opciones de geolocalización
+// Opciones de la Geolocation API
 const geoOptions = {
-  enableHighAccuracy: true,
-  timeout: 10000,
-  maximumAge: 0,
+  enableHighAccuracy: true, // Intentar usar GPS cuando sea posible
+  timeout: 10000, // Máximo 10s de espera
+  maximumAge: 0, // No usar ubicaciones cacheadas
 };
 
-// Botón: Obtener ubicación
+// Evento: al hacer clic en "Obtener / Ver ubicación"
 btnUbicacion.addEventListener("click", () => {
   if (!("geolocation" in navigator)) {
-    mensajeP.textContent = "❌ Este navegador no soporta Geolocation API.";
-    mensajeP.style.color = "#dc2626";
+    mensajeP.textContent = "Este navegador no soporta Geolocation API.";
     return;
   }
 
-  mensajeP.textContent = "📍 Obteniendo ubicación...";
-  mensajeP.style.color = "#6b7280";
+  mensajeP.textContent = "Obteniendo ubicación...";
 
+  // Primero, obtener una sola posición
   navigator.geolocation.getCurrentPosition(
     onPositionSuccess,
     onPositionError,
     geoOptions
   );
 
+  // Luego, iniciar seguimiento continuo
   if (watchId === null) {
     watchId = navigator.geolocation.watchPosition(
       onPositionSuccess,
@@ -104,27 +103,26 @@ btnUbicacion.addEventListener("click", () => {
       geoOptions
     );
     btnDetener.disabled = false;
-    mensajeP.textContent = "🔄 Seguimiento iniciado.";
+    mensajeP.textContent = "Seguimiento de ubicación iniciado.";
   }
 });
 
-// Botón: Detener seguimiento
+// Evento: al hacer clic en "Detener seguimiento"
 btnDetener.addEventListener("click", () => {
   if (watchId !== null) {
     navigator.geolocation.clearWatch(watchId);
     watchId = null;
-    mensajeP.textContent = "🛑 Seguimiento detenido.";
-    mensajeP.style.color = "#6b7280";
+    mensajeP.textContent = "Seguimiento de ubicación detenido.";
     btnDetener.disabled = true;
   }
 });
 
-// Registro del Service Worker
+// Registro básico del Service Worker (para PWA)
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
     navigator.serviceWorker
-      .register("sw.js")
-      .then((reg) => console.log("✅ Service Worker registrado:", reg.scope))
-      .catch((err) => console.error("❌ Error al registrar SW:", err));
+      .register("./sw.js")
+      .then((reg) => console.log("Service Worker registrado:", reg.scope))
+      .catch((err) => console.error("Error al registrar SW:", err));
   });
 }
